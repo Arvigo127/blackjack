@@ -1,27 +1,14 @@
-/*const { EventEmitter } = require("events");
-const { readFile, readFileSync } = require("fs");
-
-const eventEmitter = new EventEmitter();
-const fileText = readFileSync("./hello.txt", "utf-8");
-
-readFile("./asap.txt", "utf-8", (err, txt) => {
-    console.log(txt);
-});
-
-eventEmitter.on("lunch", () => {
-    //callback function
-    console.log(fileText);
-})
-
-eventEmitter.emit("lunch");
-*/
-
 const express = require("express");
 const { readFile } = require('fs');
+const expressWS = require('express-ws');
+const http = require('http');
 
 const app = express();
 
 app.use(express.static("./public"));
+let server = http.createServer(app).listen(3000);
+
+expressWS(app, server);
 
 app.get('/', (request, response) => {
     console.log("New request from ", request.ip);
@@ -34,4 +21,11 @@ app.get('/', (request, response) => {
     });
 });
 
-app.listen(3000, () => console.log("App available"));
+app.ws('/ws', async function(ws, req) {
+    ws.on("message", async function(msg) {
+        console.log(msg);
+    });
+});
+
+
+

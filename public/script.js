@@ -33,9 +33,6 @@ function addCard(playerCardList, cardNum) {
 }
 
 function gameEnd() {
-    //for(let card of player.cards) {
-    //    addCard(playerCards, card);
-    //}
     removeAllChildNodes(dealerCards);
     for(let card of dealer.cards) {
         addCard(dealerCards, card);
@@ -84,5 +81,43 @@ document.addEventListener("DOMContentLoaded", draw(dealer, true));
 document.addEventListener("DOMContentLoaded", draw(dealer, false)); 
 document.addEventListener("DOMContentLoaded", draw(player, true)); 
 document.addEventListener("DOMContentLoaded", draw(player, true)); 
+
 addButton.onclick = () => {draw(player, true)};
 stayButton.onclick = () => {dealerDrawTillDone()};
+
+let socket;
+
+const connect = function() {
+    return new Promise((resolve, reject) => {
+        const socketProtocol = (window.location.protocol === 'https:' ? 'wss:' : 'ws:')
+        const port = 3000;
+        const socketUrl = `${socketProtocol}//${window.location.hostname}:${port}/ws/`;
+
+        socket = new WebSocket(socketUrl);
+
+        socket.onopen = (e) => {
+            socket.send(JSON.stringify({'loaded':true}));
+            resolve();
+        }
+
+        socket.onerror = (e) => {
+            console.log(e);
+            resolve();
+            connect();
+        }
+    })
+}
+
+const isOpen = function(ws) {
+    return ws.readyState === ws.OPEN;
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    connect();
+    if(isOpen(socket)) {
+        socket.send(JSON.stringify({
+            "data": "Hey"
+        }))
+    }
+});
+
